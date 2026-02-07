@@ -1,5 +1,2 @@
 src-git packages https://github.com/openwrt/packages.git;master
 src-git luci https://github.com/openwrt/luci.git;master
-
-# 第三方软件包 (包含 homeproxy, passwall, openclash 等代理软件)
-src-git small https://github.com/kenzok8/small-package.git

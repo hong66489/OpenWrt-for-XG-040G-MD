@@ -75,39 +75,16 @@ jobs:
             cp -f ../$FEEDS_CONF ./feeds.conf.default
           fi
           ./scripts/feeds update -a
+
+      - name: Install third-party packages (homeproxy, passwall)
+        run: |
+          chmod +x scripts/update-packages.sh
+          bash scripts/update-packages.sh
+
+      - name: Install feeds
+        working-directory: ./openwrt
+        run: |
           ./scripts/feeds install -a -f
-          # ./scripts/feeds install \
-          #   airoha-en7581-npu-firmware \
-          #   apk \
-          #   dnsmasq \
-          #   dropbear \
-          #   firewall4 \
-          #   fstools \
-          #   ip-full \
-          #   kmod-gpio-button-hotplug \
-          #   kmod-i2c-an7581 \
-          #   kmod-leds-gpio \
-          #   kmod-phy-airoha-en8811h \
-          #   logd \
-          #   mtd \
-          #   netifd \
-          #   odhcp6c \
-          #   odhcpd-ipv6only \
-          #   ppp \
-          #   ppp-mod-pppoe \
-          #   procd \
-          #   uci \
-          #   uclient-fetch \
-          #   uboot-envtools \
-          #   ubi-utils \
-          #   urandom-seed \
-          #   urngd \
-          #   usign \
-          #   umdns \
-          #   luci \
-          #   luci-base \
-          #   luci-mod-admin-full \
-          #   luci-ssl
 
       - name: Copy configuration and defconfig
         run: |
