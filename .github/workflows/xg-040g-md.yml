@@ -75,16 +75,13 @@ jobs:
             cp -f ../$FEEDS_CONF ./feeds.conf.default
           fi
           ./scripts/feeds update -a
+          ./scripts/feeds install -a -f
 
       - name: Install third-party packages (homeproxy, passwall)
+        working-directory: ./openwrt/package
         run: |
-          chmod +x scripts/update-packages.sh
-          bash scripts/update-packages.sh
-
-      - name: Install feeds
-        working-directory: ./openwrt
-        run: |
-          ./scripts/feeds install -a -f
+          chmod +x $GITHUB_WORKSPACE/scripts/update-packages.sh
+          bash $GITHUB_WORKSPACE/scripts/update-packages.sh
 
       - name: Copy configuration and defconfig
         run: |

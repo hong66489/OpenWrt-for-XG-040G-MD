@@ -1,14 +1,13 @@
 #!/bin/bash
 # 安装和更新第三方软件包
-# 此脚本在 feeds update 后、feeds install 前运行
-
-cd "$(dirname "$0")/../openwrt" || exit 1
+# 此脚本在 openwrt/package/ 目录下运行，在 feeds install 之后执行
 
 UPDATE_PACKAGE() {
 	local PKG_NAME=$1
 	local PKG_REPO=$2
 	local PKG_BRANCH=$3
 	local PKG_SPECIAL=$4
+	local PKG_LIST=("$PKG_NAME" $5)
 	local REPO_NAME=${PKG_REPO#*/}
 
 	echo " "
@@ -16,21 +15,23 @@ UPDATE_PACKAGE() {
 	echo "Processing: $PKG_NAME from $PKG_REPO"
 	echo "=========================================="
 
-	# 删除本地可能存在的同名软件包
-	for DIR in feeds/luci feeds/packages; do
-		if [ -d "$DIR" ]; then
-			FOUND=$(find "$DIR" -maxdepth 3 -type d -iname "*$PKG_NAME*" 2>/dev/null)
-			if [ -n "$FOUND" ]; then
-				echo "$FOUND" | while read -r D; do
-					echo "Removing existing: $D"
-					rm -rf "$D"
-				done
-			fi
+	# 删除 feeds 中可能存在的同名软件包
+	for NAME in "${PKG_LIST[@]}"; do
+		echo "Search directory: $NAME"
+		local FOUND_DIRS=$(find ../feeds/luci/ ../feeds/packages/ -maxdepth 3 -type d -iname "*$NAME*" 2>/dev/null)
+
+		if [ -n "$FOUND_DIRS" ]; then
+			while read -r DIR; do
+				rm -rf "$DIR"
+				echo "Delete directory: $DIR"
+			done <<< "$FOUND_DIRS"
+		else
+			echo "Not found directory: $NAME"
 		fi
 	done
 
-	# 克隆仓库
-	git clone --depth=1 --single-branch --branch "$PKG_BRANCH" "https://github.com/$PKG_REPO.git" "$REPO_NAME"
+	# 克隆 GitHub 仓库
+	git clone --depth=1 --single-branch --branch "$PKG_BRANCH" "https://github.com/$PKG_REPO.git"
 
 	if [ ! -d "$REPO_NAME" ]; then
 		echo "ERROR: Failed to clone $PKG_REPO"
@@ -40,14 +41,11 @@ UPDATE_PACKAGE() {
 	# 处理克隆的仓库
 	if [[ "$PKG_SPECIAL" == "pkg" ]]; then
 		# 从大杂烩仓库中提取特定包
-		find "./$REPO_NAME" -maxdepth 3 -type d -iname "*$PKG_NAME*" -prune -exec cp -rf {} ./feeds/luci/ \;
-		rm -rf "./$REPO_NAME"
+		find ./$REPO_NAME/*/ -maxdepth 3 -type d -iname "*$PKG_NAME*" -prune -exec cp -rf {} ./ \;
+		rm -rf ./$REPO_NAME/
 	elif [[ "$PKG_SPECIAL" == "name" ]]; then
 		# 重命名仓库
-		mv -f "$REPO_NAME" "./feeds/luci/$PKG_NAME"
-	else
-		# 直接移动到 feeds/luci
-		mv -f "$REPO_NAME" "./feeds/luci/$PKG_NAME"
+		mv -f $REPO_NAME $PKG_NAME
 	fi
 
 	echo "Done: $PKG_NAME"
@@ -58,33 +56,28 @@ echo "Starting package updates..."
 # HomeProxy (代理软件)
 UPDATE_PACKAGE "homeproxy" "immortalwrt/homeproxy" "master"
 
-# PassWall (代理软件) - 从 openwrt-passwall 仓库提取
+# PassWall (代理软件)
 UPDATE_PACKAGE "passwall" "Openwrt-Passwall/openwrt-passwall" "main" "pkg"
 
 # PassWall 依赖包
-git clone --depth=1 --single-branch --branch main "https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git" passwall-packages
-if [ -d "passwall-packages" ]; then
-	for pkg in passwall-packages/*/; do
-		pkg_name=$(basename "$pkg")
-		if [ -d "$pkg" ] && [ -f "$pkg/Makefile" ]; then
-			echo "Installing passwall dependency: $pkg_name"
-			rm -rf "./feeds/packages/$pkg_name"
-			cp -rf "$pkg" "./feeds/packages/"
-		fi
-	done
-	rm -rf passwall-packages
-fi
-
 echo " "
 echo "=========================================="
-echo "Updating feeds index..."
+echo "Installing PassWall dependencies..."
 echo "=========================================="
-
-# 重新生成 feeds 索引，让新添加的包被识别
-./scripts/feeds update -i
+git clone --depth=1 --single-branch --branch main "https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git"
+if [ -d "openwrt-passwall-packages" ]; then
+	for pkg in openwrt-passwall-packages/*/; do
+		pkg_name=$(basename "$pkg")
+		if [ -d "$pkg" ] && [ -f "$pkg/Makefile" ]; then
+			echo "Installing: $pkg_name"
+			rm -rf "./$pkg_name"
+			cp -rf "$pkg" ./
+		fi
+	done
+	rm -rf openwrt-passwall-packages
+fi
 
 echo " "
 echo "=========================================="
 echo "Package updates completed!"
 echo "=========================================="
-
