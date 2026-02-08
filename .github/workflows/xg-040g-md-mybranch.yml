@@ -24,7 +24,7 @@ on:
 env:
   CONFIG_FILE: "config/xg-040g-md.config"
   REPO_URL: https://github.com/xiangtailiang/openwrt.git
-  REPO_BRANCH: xg040gmd-fixes
+  REPO_BRANCH: xg040-adaptation-patch
   FEEDS_CONF: feeds.conf.default
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
