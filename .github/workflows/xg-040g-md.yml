@@ -91,10 +91,10 @@ jobs:
           df -h
 
       - name: Restore ccache
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: /mnt/openwrt/ccache
-          key: ${{ runner.os }}-openwrt-${{ env.REPO_BRANCH }}-ccache-${{ hashFiles('config/xg-040g-md.config') }}
+          key: ${{ runner.os }}-openwrt-${{ env.REPO_BRANCH }}-ccache-${{ github.run_id }}
           restore-keys: |
             ${{ runner.os }}-openwrt-${{ env.REPO_BRANCH }}-ccache-
 
@@ -173,6 +173,13 @@ jobs:
           echo "status=success" >> $GITHUB_OUTPUT
           echo "ccache stats (env CCACHE_DIR=$CCACHE_DIR):"
           ccache -s || true
+
+      - name: Save ccache
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: /mnt/openwrt/ccache
+          key: ${{ runner.os }}-openwrt-${{ env.REPO_BRANCH }}-ccache-${{ github.run_id }}
 
       - name: Prepare firmware artifacts path
         id: organize
