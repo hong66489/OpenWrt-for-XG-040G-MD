@@ -84,6 +84,8 @@ jobs:
           # 需要足够的depth才能checkout到历史commit（当前最新到8月22日约497个commit）
           git clone --depth 600 --branch "$REPO_BRANCH" "$REPO_URL" openwrt
           cd openwrt
+          git clone https://github.com/xuanranran/openwrt-package.git package/xuanranran
+          curl -sSL https://raw.githubusercontent.com/mufeng05/openwrt-sonic-fullcone/master/add_sonic_fullcone.sh | bash
           git checkout 12185cffdd6bde95e7ee12474fa2146dd0d06b75
           echo "上游代码已锁定到: $(git log --oneline -1)"
 
