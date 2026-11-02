@@ -85,6 +85,7 @@ jobs:
           git clone --depth 600 --branch "$REPO_BRANCH" "$REPO_URL" openwrt
           cd openwrt
           git clone https://github.com/xuanranran/openwrt-package.git package/xuanranran
+          sed -i 's/192.168.1.1/192.168.2.1/g' package/base-files/files/bin/config_generate
           curl -sSL https://raw.githubusercontent.com/mufeng05/openwrt-sonic-fullcone/master/add_sonic_fullcone.sh | bash
           git checkout 12185cffdd6bde95e7ee12474fa2146dd0d06b75
           echo "上游代码已锁定到: $(git log --oneline -1)"
