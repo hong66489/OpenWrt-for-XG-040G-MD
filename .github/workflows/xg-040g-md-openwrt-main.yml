@@ -362,7 +362,6 @@ jobs:
           echo "Disk usage before compile:"
           df -h
           echo "Stage 1: Multi-threaded fast compile with -j$(nproc)"
-          curl -sSL https://raw.githubusercontent.com/mufeng05/openwrt-sonic-fullcone/master/add_sonic_fullcone.sh | bash
           make -j$(nproc) || {
             echo "Stage 1 failed, falling back to Stage 2: Single-threaded verbose compile with -j1 V=s"
             make -j1 V=s || {
